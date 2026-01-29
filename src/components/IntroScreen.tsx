@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Sparkles } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 interface IntroScreenProps {
   onStart: () => void;
@@ -33,21 +34,12 @@ const IntroScreen = ({ onStart }: IntroScreenProps) => {
           transition={{ delay: 0.2, duration: 0.6 }}
           className="mb-8"
         >
-          <span className="text-gold text-sm font-body tracking-[0.3em] uppercase">
-            Artisan Chocolatier
-          </span>
+          <img 
+            src={logo} 
+            alt="La Maison du Praliné - Maître Chocolatier Français" 
+            className="h-24 md:h-32 w-auto mx-auto"
+          />
         </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="font-display text-5xl md:text-7xl text-primary mb-4 leading-tight"
-        >
-          La Maison
-          <br />
-          <span className="text-gradient-gold">du Praliné</span>
-        </motion.h1>
 
         <motion.p
           initial={{ opacity: 0 }}
