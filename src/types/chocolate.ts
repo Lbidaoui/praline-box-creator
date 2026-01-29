@@ -12,6 +12,7 @@ export interface BoxSize {
   rows: number;
   chocolatesPerRow: number;
   price: number;
+  weight: number;
   image?: string;
 }
 
