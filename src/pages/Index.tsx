@@ -1,18 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import { AppStep, BoxSize, PlacedChocolate } from '@/types/chocolate';
 import IntroScreen from '@/components/IntroScreen';
 import BoxSelection from '@/components/BoxSelection';
 import ChocolateCustomizer from '@/components/ChocolateCustomizer';
 import MessageCard from '@/components/MessageCard';
 import OrderConfirmation from '@/components/OrderConfirmation';
+import SharedOrderView from '@/components/SharedOrderView';
 
 const Index = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [step, setStep] = useState<AppStep>('intro');
   const [selectedBox, setSelectedBox] = useState<BoxSize | null>(null);
   const [placedChocolates, setPlacedChocolates] = useState<PlacedChocolate[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [recipientName, setRecipientName] = useState<string | null>(null);
+  const [sharedCode, setSharedCode] = useState<string | null>(null);
+
+  // Check for shared order code in URL
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      setSharedCode(code);
+    }
+  }, [searchParams]);
+
+  const handleCloseSharedView = () => {
+    setSharedCode(null);
+    setSearchParams({});
+  };
 
   const handleBoxSelect = (box: BoxSize) => {
     setSelectedBox(box);
@@ -37,6 +54,11 @@ const Index = () => {
     setMessage(null);
     setRecipientName(null);
   };
+
+  // Show shared order view if code is present
+  if (sharedCode) {
+    return <SharedOrderView code={sharedCode} onClose={handleCloseSharedView} />;
+  }
 
   return (
     <AnimatePresence mode="wait">
