@@ -14,13 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          box_name: string
+          box_price: number
+          box_weight: number
+          chocolates_count: number
+          chocolates_data: Json
+          code: string
+          created_at: string
+          id: string
+          message: string | null
+          name: string
+          recipient_name: string | null
+          view_count: number
+        }
+        Insert: {
+          box_name: string
+          box_price: number
+          box_weight: number
+          chocolates_count: number
+          chocolates_data?: Json
+          code: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          name: string
+          recipient_name?: string | null
+          view_count?: number
+        }
+        Update: {
+          box_name?: string
+          box_price?: number
+          box_weight?: number
+          chocolates_count?: number
+          chocolates_data?: Json
+          code?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          name?: string
+          recipient_name?: string | null
+          view_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_order_code: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
