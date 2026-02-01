@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Header from '@/components/Header';
 import ProcessSteps from '@/components/ProcessSteps';
+import OrderSharing from '@/components/OrderSharing';
+import Leaderboard from '@/components/Leaderboard';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface OrderConfirmationProps {
   box: BoxSize;
@@ -22,6 +26,15 @@ const formatWeight = (grams: number): string => {
   return `${grams} g`;
 };
 
+const generateCode = (): string => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let result = '';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
 const OrderConfirmation = ({
   box,
   placedChocolates,
@@ -30,6 +43,11 @@ const OrderConfirmation = ({
   onNewOrder,
 }: OrderConfirmationProps) => {
   const [showConfetti, setShowConfetti] = useState(true);
+  const [orderName, setOrderName] = useState('');
+  const [orderCode, setOrderCode] = useState(generateCode());
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [leaderboardExpanded, setLeaderboardExpanded] = useState(true);
 
   const totalPrice = box.price;
 
@@ -37,6 +55,43 @@ const OrderConfirmation = ({
     const timer = setTimeout(() => setShowConfetti(false), 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleSaveOrder = async () => {
+    if (!orderName.trim()) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase.from('orders').insert([{
+        code: orderCode,
+        name: orderName.trim(),
+        box_name: box.name,
+        box_price: box.price,
+        box_weight: box.weight,
+        chocolates_count: placedChocolates.length,
+        chocolates_data: JSON.parse(JSON.stringify(placedChocolates)),
+        message: message,
+        recipient_name: recipientName,
+      }]);
+
+      if (error) {
+        // If code collision, regenerate and retry
+        if (error.code === '23505') {
+          setOrderCode(generateCode());
+          toast.error('Code déjà utilisé, veuillez réessayer');
+        } else {
+          throw error;
+        }
+      } else {
+        setIsSaved(true);
+        toast.success('Votre création est enregistrée !');
+      }
+    } catch (error) {
+      console.error('Error saving order:', error);
+      toast.error('Erreur lors de l\'enregistrement');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-cream relative overflow-hidden">
@@ -108,12 +163,22 @@ const OrderConfirmation = ({
             </div>
           </motion.div>
 
+          {/* Order Sharing */}
+          <OrderSharing
+            code={orderCode}
+            orderName={orderName}
+            onNameChange={setOrderName}
+            onSave={handleSaveOrder}
+            isSaving={isSaving}
+            isSaved={isSaved}
+          />
+
           {/* Order summary */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="bg-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-medium border border-gold/20 mb-6 sm:mb-8"
+            className="bg-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-medium border border-gold/20 mb-6"
           >
             <h3 className="font-display text-lg sm:text-xl text-primary mb-4">Récapitulatif</h3>
             
@@ -152,10 +217,17 @@ const OrderConfirmation = ({
             </div>
           </motion.div>
 
+          {/* Leaderboard */}
+          <Leaderboard
+            isExpanded={leaderboardExpanded}
+            onToggle={() => setLeaderboardExpanded(!leaderboardExpanded)}
+          />
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
+            className="mt-6"
           >
             <Button
               onClick={onNewOrder}
@@ -166,15 +238,6 @@ const OrderConfirmation = ({
               Créer un nouveau coffret
             </Button>
           </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="mt-6 sm:mt-8 text-xs sm:text-sm text-muted-foreground font-body"
-          >
-            Un email de confirmation vous sera envoyé prochainement
-          </motion.p>
         </motion.div>
       </div>
     </div>
